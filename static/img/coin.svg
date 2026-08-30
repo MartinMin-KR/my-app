@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- 동전 모양 아이콘. SVG 는 글자로 된 그림 파일이라 그냥 텍스트로 만들 수 있다 -->
+  <circle cx="24" cy="24" r="22" fill="#f5c542" stroke="#c99a1e" stroke-width="3"/>
+  <text x="24" y="31" font-size="20" font-family="sans-serif" font-weight="bold" text-anchor="middle" fill="#7a5a00">₩</text>
+</svg>

@@ -1,0 +1,11 @@
+# 가상환경 — 패키지는 requirements.txt로 복원 가능
+venv/
+# 비밀값
+.env
+# 파이썬 캐시
+__pycache__/
+*.pyc
+# SQLite DB 파일 — 데이터는 코드가 아니므로 git에 안 올림
+*.db
+# macOS
+.DS_Store

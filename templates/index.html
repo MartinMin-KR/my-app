@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <!-- url_for 가 /static/css/style.css 주소를 만들어준다 -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <!-- static/ 폴더의 이미지. 브라우저가 이 주소로 파일을 그대로 받아간다 -->
+        <img src="{{ url_for('static', path='img/coin.svg') }}" alt="동전 아이콘" class="logo">
+        <h1>{{ title }}</h1>
+    </header>
+
+    <!-- 이 자리는 JS가 채운다. JS가 없으면 빈 채로 남는다 -->
+    <p class="today">오늘: <span id="today"></span></p>
+
+    <!-- 등록 폼. 제출하면 브라우저가 /expenses 주소로 POST 요청을 보낸다 -->
+    <!-- 각 input 의 name 이 서버에서 받을 때의 이름이 된다 -->
+    <form action="/expenses" method="post" class="add-form">
+        <!-- label 의 for 와 input 의 id 를 맞추면 라벨을 눌러도 입력칸이 선택된다 -->
+        <div class="field">
+            <label for="name">이름</label>
+            <input type="text" id="name" name="name" placeholder="예: 월세" required>
+        </div>
+        <div class="field">
+            <label for="amount">금액 (원)</label>
+            <input type="number" id="amount" name="amount" placeholder="예: 500000" min="0" required>
+        </div>
+        <div class="field">
+            <label for="billing_day">결제일 (매월 며칠)</label>
+            <input type="number" id="billing_day" name="billing_day" placeholder="1~31" min="1" max="31" required>
+        </div>
+        <div class="field">
+            <label for="memo">메모 (선택)</label>
+            <input type="text" id="memo" name="memo" placeholder="예: 가족 요금제">
+        </div>
+        <button type="submit">추가</button>
+    </form>
+
+    <!-- 요약 두 줄. 값은 app.py 에서 계산해서 넘어온다 -->
+    <section class="summary">
+        <div class="summary-row">
+            <span>전체 월 합계</span>
+            <strong>{{ "{:,}".format(total) }}원</strong>
+        </div>
+        <div class="summary-row">
+            <span>이번 달 남은 금액 ({{ today_day }}일 이후)</span>
+            <strong>{{ "{:,}".format(remaining) }}원</strong>
+        </div>
+    </section>
+
+    <table>
+        <thead>
+            <tr>
+                <th>이름</th>
+                <th>금액</th>
+                <th>결제일</th>
+                <th>메모</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- app.py 가 넘긴 expenses 리스트를 한 줄씩 돌면서 <tr> 을 찍는다 -->
+            {% for e in expenses %}
+            <tr>
+                <td>{{ e.name }}</td>
+                <td class="num">{{ "{:,}".format(e.amount) }}원</td>
+                <td class="num">매월 {{ e.billing_day }}일</td>
+                <!-- memo 가 None(비어있음)이면 아무것도 안 찍는다 -->
+                <td class="memo">{{ e.memo or "" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script src="{{ url_for('static', path='js/main.js') }}"></script>
+</body>
+</html>
