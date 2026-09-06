@@ -1,6 +1,6 @@
-from datetime import date
+from datetime import date, datetime
 
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -24,9 +24,12 @@ templates = Jinja2Templates(directory="templates")
 def index(request: Request):
     # DB 에서 고정비 전부 읽어오기. 결제일 순으로 정렬
     # with 블록이 끝나면 세션이 자동으로 닫힌다
+    # deleted_at 이 비어있는(= 아직 안 지운) 항목만 꺼낸다. soft delete 의 "조회 시 제외"
     with SessionLocal() as db:
         expenses = db.scalars(
-            select(Expense).order_by(Expense.billing_day)
+            select(Expense)
+            .where(Expense.deleted_at.is_(None))
+            .order_by(Expense.billing_day)
         ).all()
 
     # 요약 두 줄 계산
@@ -72,6 +75,22 @@ def create_expense(
 
     # 저장 후 첫 화면("/")으로 돌려보낸다. 303 은 "POST 끝났으니 GET 으로 저기 가라"는 뜻
     return RedirectResponse(url="/", status_code=303)
+
+
+# 삭제. {expense_id} 는 빈칸 주소 — 이 자리에 온 값이 expense_id 로 들어온다
+# 폼이 아니라 JS 의 fetch 가 DELETE 방식으로 보낸다 (index 쪽 main.js 참고)
+@app.delete("/expenses/{expense_id}")
+def delete_expense(expense_id: int):
+    with SessionLocal() as db:
+        expense = db.get(Expense, expense_id)  # 번호로 한 줄 꺼내기 (없으면 None)
+        if expense is None:
+            # 없는 번호면 404 로 거절 (이미 지워진 걸 또 지우는 경우 등)
+            raise HTTPException(status_code=404, detail="해당 항목이 없습니다")
+        # 줄을 지우지 않고 "지금 지워짐" 도장만 찍는다 (soft delete)
+        expense.deleted_at = datetime.now()
+        db.commit()
+    # 받는 쪽이 사람이 아니라 JS 라서, HTML 대신 간단한 신호만 돌려준다
+    return {"ok": True}
 
 
 # 주소를 하나 더. "/about" 으로 오면 이 함수가 실행된다

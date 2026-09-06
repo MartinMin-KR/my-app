@@ -59,6 +59,7 @@
                 <th>금액</th>
                 <th>결제일</th>
                 <th>메모</th>
+                <th></th>  <!-- 삭제 버튼 열. 제목은 비워둠 -->
             </tr>
         </thead>
         <tbody>
@@ -70,6 +71,11 @@
                 <td class="num">매월 {{ e.billing_day }}일</td>
                 <!-- memo 가 None(비어있음)이면 아무것도 안 찍는다 -->
                 <td class="memo">{{ e.memo or "" }}</td>
+                <td>
+                    <!-- 폼에 안 싸인 맨 버튼. 기능은 main.js 가 부여한다 -->
+                    <!-- data-* 는 JS 가 나중에 읽을 메모: 몇 번을, 뭐라고 부르며 지울지 -->
+                    <button class="delete-btn" data-id="{{ e.id }}" data-name="{{ e.name }}">삭제</button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

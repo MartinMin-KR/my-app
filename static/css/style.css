@@ -116,3 +116,17 @@ th {
     color: #777;
     font-size: 13px;
 }
+
+/* 삭제 버튼: 파괴적 액션이라 채움 없이 조용한 텍스트 버튼 (CTA 만 채움 스타일) */
+.delete-btn {
+    padding: 6px 10px;
+    font-size: 13px;
+    border: none;
+    background: none;
+    color: #d33;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    text-decoration: underline;
+}
