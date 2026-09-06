@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import Date, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database import Base
@@ -18,3 +18,6 @@ class Expense(Base):
     # soft delete 용. 비어있으면(NULL) 살아있는 항목, 시각이 있으면 그때 삭제된 항목
     # is_deleted(예/아니오) 대신 시각을 남긴 이유: 달별 내역을 보려면 "언제" 지웠는지 필요 (결정_기록.md)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # 구독 시작일. 등록 시점(created_at)이 아니라 사용자가 입력하는 "실제 시작 날짜" (결정_기록.md)
+    # 시각은 의미가 없어서 날짜만(Date). 기존 항목은 NULL — UPDATE 로 직접 채우기로 함
+    start_date: Mapped[date | None] = mapped_column(Date, nullable=True)

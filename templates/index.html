@@ -17,8 +17,20 @@
     <!-- 이 자리는 JS가 채운다. JS가 없으면 빈 채로 남는다 -->
     <p class="today">오늘: <span id="today"></span></p>
 
+    <!-- 달 선택 드롭다운. 고르면 ?month=2026-07 로 GET 요청을 다시 보낸다 -->
+    <form method="get" class="month-form">
+        <select name="month" onchange="this.form.submit()">
+            {% for m in months %}
+            <option value="{{ m.value }}" {% if m.value == selected_value %}selected{% endif %}>{{ m.label }}</option>
+            {% endfor %}
+        </select>
+        {% if past_mode %}<span class="readonly-note">과거 기록 (읽기 전용)</span>{% endif %}
+    </form>
+
+    {% if not past_mode %}
     <!-- 등록 폼. 제출하면 브라우저가 /expenses 주소로 POST 요청을 보낸다 -->
     <!-- 각 input 의 name 이 서버에서 받을 때의 이름이 된다 -->
+    <!-- 과거 달 화면에서는 숨긴다 (읽기 전용 — 결정_기록.md) -->
     <form action="/expenses" method="post" class="add-form">
         <!-- label 의 for 와 input 의 id 를 맞추면 라벨을 눌러도 입력칸이 선택된다 -->
         <div class="field">
@@ -34,14 +46,26 @@
             <input type="number" id="billing_day" name="billing_day" placeholder="1~31" min="1" max="31" required>
         </div>
         <div class="field">
+            <label for="start_date">시작일</label>
+            <!-- 내장 date 입력: 연/월/일 타이핑 + 달력 + 불가능한 날짜 자동 거절. 기본값은 오늘 -->
+            <input type="date" id="start_date" name="start_date" value="{{ today_iso }}" required>
+        </div>
+        <div class="field">
             <label for="memo">메모 (선택)</label>
             <input type="text" id="memo" name="memo" placeholder="예: 가족 요금제">
         </div>
         <button type="submit">추가</button>
     </form>
+    {% endif %}
 
-    <!-- 요약 두 줄. 값은 app.py 에서 계산해서 넘어온다 -->
+    <!-- 요약. 이번 달엔 두 줄, 과거 달엔 "나간 돈" 한 줄 (결정_기록.md) -->
     <section class="summary">
+        {% if past_mode %}
+        <div class="summary-row">
+            <span>{{ selected_label }}에 나간 돈</span>
+            <strong>{{ "{:,}".format(total) }}원</strong>
+        </div>
+        {% else %}
         <div class="summary-row">
             <span>전체 월 합계</span>
             <strong>{{ "{:,}".format(total) }}원</strong>
@@ -50,6 +74,7 @@
             <span>이번 달 남은 금액 ({{ today_day }}일 이후)</span>
             <strong>{{ "{:,}".format(remaining) }}원</strong>
         </div>
+        {% endif %}
     </section>
 
     <table>
@@ -59,7 +84,7 @@
                 <th>금액</th>
                 <th>결제일</th>
                 <th>메모</th>
-                <th></th>  <!-- 삭제 버튼 열. 제목은 비워둠 -->
+                {% if not past_mode %}<th></th>{% endif %}  <!-- 삭제 버튼 열. 과거 달엔 없음 -->
             </tr>
         </thead>
         <tbody>
@@ -71,11 +96,13 @@
                 <td class="num">매월 {{ e.billing_day }}일</td>
                 <!-- memo 가 None(비어있음)이면 아무것도 안 찍는다 -->
                 <td class="memo">{{ e.memo or "" }}</td>
+                {% if not past_mode %}
                 <td>
                     <!-- 폼에 안 싸인 맨 버튼. 기능은 main.js 가 부여한다 -->
                     <!-- data-* 는 JS 가 나중에 읽을 메모: 몇 번을, 뭐라고 부르며 지울지 -->
                     <button class="delete-btn" data-id="{{ e.id }}" data-name="{{ e.name }}">삭제</button>
                 </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
